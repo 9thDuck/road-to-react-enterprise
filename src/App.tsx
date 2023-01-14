@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import logo from './logo.svg'
 import './App.css'
-import AnimalExample from './components/AnimalExample'
+import AnimalExampleWithApiStates from './components/AnimalExample'
 
 function App() {
  // const [count, setCount] = useState(0)
@@ -39,7 +39,7 @@ function App() {
           </a>
         </p>
       </header> */}
-   <AnimalExample />
+   <AnimalExampleWithApiStates />
   </div>
  )
 }

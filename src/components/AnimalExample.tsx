@@ -1,53 +1,50 @@
 import { fetchCat, fetchDog } from '@/api/animalApi'
+import { IDLE, SUCCESS, PENDING, ERROR } from '@/api/constants/apiStatus'
+import { WithAsync } from '@/helpers/withAsync'
 import React, { useState, useEffect } from 'react'
 
 const useFetchDog = () => {
  const [dog, setDog] = useState<string>()
- const [isLoadingDog, setIsLoading] = useState<Boolean>(false)
- const [isErrorDog, setIsError] = useState<Boolean>(false)
+ const [fetchDogStatus, setFetchDogStatus] = useState(IDLE)
  const initFetchDog = async () => {
-  try {
-   setIsLoading(true)
-   const response = await fetchDog()
-   isErrorDog && setIsError(false)
+  setFetchDogStatus(PENDING)
+  const { error, response } = await WithAsync(() => fetchDog())
+  if (error) {
+   console.log('Error while loading dog', error)
+   setFetchDogStatus(ERROR)
+  } else if (response) {
    setDog(response.data.message)
-   setIsLoading(false)
-  } catch (err) {
-   setIsError(true)
-   console.log('Error while loading dog', err)
+   setFetchDogStatus(SUCCESS)
   }
  }
 
  return {
   dog,
-  isErrorDog,
-  isLoadingDog,
+  fetchDogStatus,
   initFetchDog,
  }
 }
 
 const useFetchCat = () => {
  const [cat, setCat] = useState<string>()
- const [isLoadingCat, setIsLoading] = useState<Boolean>(false)
- const [isErrorCat, setIsError] = useState<Boolean>(false)
+ const [fetchCatStatus, setFetchCatStatus] = useState(IDLE)
  const initFetchCat = async () => {
   try {
-   setIsLoading(true)
+   setFetchCatStatus(PENDING)
    const response = await fetchCat()
-   isErrorCat && setIsError(false)
    setCat((response.data && response.data[0].url) || '')
-   setIsLoading(false)
+   setFetchCatStatus(SUCCESS)
   } catch (err) {
    console.log('Error while loading cat', err)
-   setIsError(true)
+   setFetchCatStatus(ERROR)
   }
  }
- return { cat, isErrorCat, isLoadingCat, initFetchCat }
+ return { cat, fetchCatStatus, initFetchCat }
 }
 
 const useFetchAnimals = () => {
- const { dog, isErrorDog, isLoadingDog, initFetchDog } = useFetchDog()
- const { cat, isErrorCat, isLoadingCat, initFetchCat } = useFetchCat()
+ const { dog, fetchDogStatus, initFetchDog } = useFetchDog()
+ const { cat, fetchCatStatus, initFetchCat } = useFetchCat()
 
  const fetchAnimals = () => {
   initFetchDog()
@@ -59,11 +56,9 @@ const useFetchAnimals = () => {
 
  return {
   dog,
-  isErrorDog,
-  isLoadingDog,
+  fetchDogStatus,
   cat,
-  isErrorCat,
-  isLoadingCat,
+  fetchCatStatus,
   fetchAnimals,
  }
 }
@@ -93,34 +88,31 @@ const styles = {
  },
 }
 
-const AnimalExample = () => {
- const {
-  dog,
-  isErrorDog,
-  isLoadingDog,
-  cat,
-  isErrorCat,
-  isLoadingCat,
-  fetchAnimals,
- } = useFetchAnimals()
+const AnimalExampleWithApiStates = () => {
+ const { dog, fetchDogStatus, cat, fetchCatStatus, fetchAnimals } =
+  useFetchAnimals()
  return (
   <main style={styles.container}>
    <div style={styles.imgsContainer}>
     <div style={styles.imgContainer}>
-     {isErrorDog ? (
+     {fetchDogStatus === IDLE ? (
+      <p>Welcome!</p>
+     ) : fetchDogStatus === ERROR ? (
       <p>Problem Doggo Appeared!</p>
-     ) : isLoadingDog ? (
+     ) : fetchDogStatus === PENDING ? (
       <p>Loading Dog</p>
-     ) : dog ? (
+     ) : fetchDogStatus === SUCCESS ? (
       <img src={dog} style={styles.img} />
      ) : null}
     </div>
     <div style={styles.imgContainer}>
-     {isErrorCat ? (
+     {fetchCatStatus === IDLE ? (
+      <p>Welcome!</p>
+     ) : fetchCatStatus === ERROR ? (
       <p>Problem Cate Appeared!</p>
-     ) : isLoadingCat ? (
+     ) : fetchCatStatus === PENDING ? (
       <p>Loading Cat</p>
-     ) : cat ? (
+     ) : fetchCatStatus === SUCCESS ? (
       <img src={cat} style={styles.img} />
      ) : null}
     </div>
@@ -132,4 +124,4 @@ const AnimalExample = () => {
  )
 }
 
-export default AnimalExample
+export default AnimalExampleWithApiStates
